@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>♻️ VisionBin Detector</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: 1.2px;
+      text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .camera-area {
+      margin: 20px 0;
+      padding: 20px;
+      border: 2px dashed rgba(255,255,255,0.3);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .camera-area:hover {
+      border-color: #00c6ff;
+      background: rgba(0,198,255,0.08);
+    }
+
+    video {
+      border-radius: 14px;
+      border: 2px solid #00c6ff;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      margin-bottom: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,198,255,0.5);
+    }
+
+    #preview {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+    }
+
+    canvas {
+      max-width: 100%;
+      border-radius: 14px;
+      border: 2px solid #00c6ff;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Collapsible Results Drawer */
+    .results-drawer {
+      position: fixed;
+      top: 0;
+      right: -350px;
+      width: 350px;
+      height: 100%;
+      background: rgba(20,20,20,0.97);
+      backdrop-filter: blur(10px);
+      box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+      padding: 20px;
+      transition: right 0.4s ease;
+      overflow-y: auto;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .results-drawer.open {
+      right: 0;
+    }
+
+    .results-drawer h3 {
+      margin-top: 0;
+      color: #00ffb3;
+      font-size: 1.3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 8px;
+    }
+
+    .result-item {
+      margin-bottom: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      border-left: 5px solid #00ff88;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .result-label {
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.1rem;
+    }
+
+    .result-bbox {
+      color: #7ed6df;
+      font-size: 0.9rem;
+      margin-left: 10px;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Close button inside drawer */
+    .close-btn {
+      align-self: flex-end;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #fff;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+      color: #00c6ff;
+    }
+
+    /* Floating Toggle Button */
+    #toggleResults {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+      transition: all 0.3s ease;
+      z-index: 1100;
+    }
+
+    #toggleResults:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0,198,255,0.6);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 900px) {
+      .container {
+        margin: 20px;
+        padding: 15px;
+      }
+      .results-drawer {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.4rem;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+      .results-drawer {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>♻️ VisionBin: Smart Waste Detection</h1>
+  </header>
+
+  <div class="container">
+    <div class="camera-area">
+      <video id="video" autoplay playsinline></video>
+      <button id="captureBtn">📸 Capture & Detect</button>
+    </div>
+
+    <div id="preview">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Results Drawer -->
+  <div id="resultsDrawer" class="results-drawer">
+    <button class="close-btn" id="closeDrawer">✖</button>
+    <h3>Detection Results</h3>
+    <div id="output"><span style="color:#fff;">No detections yet...</span></div>
+  </div>
+
+  <!-- Floating Button -->
+  <button id="toggleResults">📊</button>
+
+  <script>
+    const serverURL = "http://127.0.0.1:5000/predict";
+
+    const video = document.getElementById("video");
+    const resultsDrawer = document.getElementById("resultsDrawer");
+    const toggleResultsBtn = document.getElementById("toggleResults");
+    const closeDrawerBtn = document.getElementById("closeDrawer");
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access denied or not available.");
+      });
+
+    function displayResults(detections) {
+      const output = document.getElementById("output");
+      output.innerHTML = "";
+
+      if (!detections.length) {
+        output.innerHTML = '<span style="color:#fff;">No detections found.</span>';
+      } else {
+        detections.forEach(det => {
+          const item = document.createElement("div");
+          item.className = "result-item";
+          item.innerHTML = `
+            <span class="result-label">${det.class}</span>
+            <span class="result-bbox">[${det.bbox.join(", ")}]</span>
+          `;
+          output.appendChild(item);
+        });
+      }
+
+      // Auto-open drawer when new results
+      resultsDrawer.classList.add("open");
+    }
+
+    document.getElementById("captureBtn").onclick = async function() {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async function(blob) {
+        const formData = new FormData();
+        formData.append("image", blob, "frame.jpg");
+
+        const response = await fetch(serverURL, {
+          method: "POST",
+          body: formData
+        });
+        const result = await response.json();
+
+        displayResults(result.detections);
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#00ff88";
+        ctx.lineWidth = 3;
+        ctx.font = "22px Segoe UI";
+        ctx.fillStyle = "#00ff88";
+
+        result.detections.forEach(det => {
+          let [x1, y1, x2, y2] = det.bbox;
+          ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+          ctx.fillText(det.class, x1, y1 > 20 ? y1 - 5 : y1 + 25);
+        });
+      }, "image/jpeg");
+    };
+
+    // Toggle drawer
+    toggleResultsBtn.onclick = () => {
+      resultsDrawer.classList.toggle("open");
+    };
+
+    // Close drawer
+    closeDrawerBtn.onclick = () => {
+      resultsDrawer.classList.remove("open");
+    };
+  </script>
+</body>
+</html>
