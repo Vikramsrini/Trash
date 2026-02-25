@@ -1563,16 +1563,19 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 3px;
-      margin-top: 60px;
-      border-radius: 16px;
+      margin-top: 48px;
+      border-radius: 14px;
       overflow: hidden;
       background: var(--border);
+      max-width: 960px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .sim-panel {
       background: var(--ink);
       position: relative;
-      aspect-ratio: 4/3;
+      aspect-ratio: 16/10;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -1628,8 +1631,8 @@
 
     /* Turntable base */
     .sim-turntable {
-      width: 180px;
-      height: 180px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: linear-gradient(145deg, #1a1a2e, #16213e);
       border: 2px solid rgba(255, 255, 255, 0.08);
@@ -1651,7 +1654,7 @@
     }
 
     .sim-waste-item {
-      font-size: 52px;
+      font-size: 40px;
       position: relative;
       z-index: 3;
       transition: all 0.6s ease;
@@ -1664,8 +1667,8 @@
       top: -8px;
       left: 50%;
       transform: translateX(-50%);
-      width: 200px;
-      height: 40px;
+      width: 160px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1673,8 +1676,8 @@
 
     .sim-camera-arm-left,
     .sim-camera-arm-right {
-      width: 4px;
-      height: 60px;
+      width: 3px;
+      height: 46px;
       background: linear-gradient(180deg, #2a2a3e, #1a1a2e);
       border: 1px solid rgba(255, 255, 255, 0.1);
       position: absolute;
@@ -1691,7 +1694,7 @@
 
     .sim-camera-bar {
       width: 100%;
-      height: 12px;
+      height: 10px;
       background: linear-gradient(180deg, #2a2a3e, #1a1a2e);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 2px;
@@ -1714,18 +1717,18 @@
     /* Detection overlay tooltip */
     .sim-detect-tooltip {
       position: absolute;
-      left: 12px;
-      bottom: 28%;
+      left: 10px;
+      bottom: 20%;
       background: rgba(20, 20, 35, 0.92);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      padding: 14px 18px;
+      padding: 10px 14px;
       z-index: 10;
       opacity: 0;
       transform: translateX(-10px);
       transition: opacity 0.5s, transform 0.5s;
-      min-width: 200px;
+      min-width: 170px;
     }
 
     .sim-panel.active-panel .sim-detect-tooltip {
@@ -1735,9 +1738,9 @@
 
     .sim-detect-line {
       font-family: var(--ff-mono);
-      font-size: 12px;
+      font-size: 10px;
       color: var(--text);
-      line-height: 1.8;
+      line-height: 1.7;
     }
 
     .sim-detect-line .val {
@@ -1794,8 +1797,8 @@
     }
 
     .sim-turntable-rotating {
-      width: 180px;
-      height: 180px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: linear-gradient(145deg, #1a1a2e, #16213e);
       border: 2px solid rgba(255, 255, 255, 0.08);
@@ -1892,8 +1895,8 @@
     }
 
     .sim-turntable-tilt {
-      width: 180px;
-      height: 180px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: linear-gradient(145deg, #1a1a2e, #16213e);
       border: 2px solid rgba(255, 255, 255, 0.08);
@@ -1925,7 +1928,7 @@
     }
 
     .sim-falling-waste {
-      font-size: 40px;
+      font-size: 32px;
       position: absolute;
       z-index: 4;
       animation: waste-fall 4s ease-in infinite;
@@ -2071,7 +2074,7 @@
       display: flex;
       justify-content: center;
       gap: 24px;
-      margin-top: 32px;
+      margin-top: 24px;
     }
 
     .sim-step-indicator {
@@ -2284,6 +2287,249 @@
         bottom: 16px;
         left: 16px;
       }
+
+      .showcase-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .showcase-section {
+        padding: 60px 24px;
+      }
+
+      .showcase-features {
+        grid-template-columns: 1fr;
+      }
+
+      .problem-stats-banner {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       PRODUCT SHOWCASE SECTION
+    ═══════════════════════════════════════════════ */
+    .showcase-section {
+      background: var(--ink);
+      overflow: hidden;
+      padding: 80px 48px;
+      position: relative;
+    }
+
+    .showcase-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .showcase-image-container {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(0, 168, 150, 0.06), rgba(13, 31, 53, 0.6));
+      border: 1px solid var(--border);
+      padding: 24px;
+      transition: transform 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .showcase-image-container:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 24px 60px rgba(0, 168, 150, 0.15), 0 0 0 1px rgba(0, 168, 150, 0.3);
+    }
+
+    .showcase-image-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at top left, rgba(0, 168, 150, 0.08), transparent 60%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .showcase-image-container img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      display: block;
+      position: relative;
+      z-index: 2;
+    }
+
+    .showcase-image-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      background: rgba(10, 22, 40, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--teal);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .showcase-image-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: float-pulse 1.5s ease-in-out infinite;
+    }
+
+    .showcase-content {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .showcase-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .showcase-feature {
+      background: rgba(13, 31, 53, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.3s, transform 0.3s, background 0.3s;
+    }
+
+    .showcase-feature:hover {
+      border-color: var(--teal);
+      transform: translateY(-3px);
+      background: rgba(0, 168, 150, 0.04);
+    }
+
+    .showcase-feature-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .showcase-feature h4 {
+      font-family: var(--ff-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .showcase-feature p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PROBLEM STATS GRID
+    ═══════════════════════════════════════════════ */
+    .problem-stats-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      margin-top: 48px;
+      margin-bottom: 48px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .problem-stat-card {
+      background: var(--ink);
+      padding: 32px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .problem-stat-card:hover {
+      background: rgba(0, 168, 150, 0.04);
+    }
+
+    .problem-stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 2px;
+      background: var(--card-stat-color, var(--teal));
+      border-radius: 1px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .problem-stat-card:hover::after {
+      opacity: 1;
+    }
+
+    .problem-stat-value {
+      font-family: var(--ff-display);
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .problem-stat-value span {
+      color: var(--card-stat-color, var(--teal));
+    }
+
+    .problem-stat-label {
+      font-family: var(--ff-mono);
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1.4;
+    }
+
+    .problem-stat-source {
+      font-size: 10px;
+      color: rgba(107, 139, 164, 0.5);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* Problem detail stats in each card */
+    .problem-card-stat {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .problem-card-stat-value {
+      font-family: var(--ff-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--card-accent, var(--teal));
+      line-height: 1;
+    }
+
+    .problem-card-stat-desc {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -2364,6 +2610,52 @@
     <div class="ticker-inner" id="ticker"></div>
   </div>
 
+  <!-- PRODUCT SHOWCASE -->
+  <section class="showcase-section" id="showcase">
+    <div class="showcase-layout reveal">
+      <div class="showcase-image-container">
+        <div class="showcase-image-badge">
+          <span class="badge-dot"></span>
+          Prototype v1.0
+        </div>
+        <img src="Picture1.png"
+          alt="VisionBin Smart Waste Classification Device — AI-powered camera, rotating turntable, and multi-compartment waste bins"
+          loading="lazy">
+      </div>
+      <div class="showcase-content">
+        <div class="section-label">The Product</div>
+        <h2 class="section-title" style="margin-bottom:8px;">Meet VisionBin.</h2>
+        <p style="font-size:17px; color:var(--muted); line-height:1.7; margin-bottom:12px;">
+          An intelligent waste classification machine that combines a high-resolution camera,
+          dual AI models, and a precision-controlled rotating platform to sort waste autonomously
+          into the correct bin — in under a second.
+        </p>
+        <div class="showcase-features">
+          <div class="showcase-feature">
+            <span class="showcase-feature-icon">📷</span>
+            <h4>HD Camera Module</h4>
+            <p>1080p overhead camera for real-time waste imaging</p>
+          </div>
+          <div class="showcase-feature">
+            <span class="showcase-feature-icon">🧠</span>
+            <h4>Dual AI Inference</h4>
+            <p>YOLOv8 detection + LeViT-256 classification</p>
+          </div>
+          <div class="showcase-feature">
+            <span class="showcase-feature-icon">🔄</span>
+            <h4>Rotating Platform</h4>
+            <p>Stepper-motor controlled 360° turntable sorting</p>
+          </div>
+          <div class="showcase-feature">
+            <span class="showcase-feature-icon">🗑</span>
+            <h4>Multi-Compartment</h4>
+            <p>9 dedicated bins for complete waste separation</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- PROBLEM -->
   <section class="problem-section" id="problem">
     <div class="max-w">
@@ -2374,27 +2666,64 @@
         Manual sorting fails at scale — we need intelligence in the bin.
       </p>
 
+      <!-- Global Waste Statistics Banner -->
+      <div class="problem-stats-banner reveal reveal-delay-2">
+        <div class="problem-stat-card" style="--card-stat-color: #F4623A;">
+          <div class="problem-stat-value"><span>2.01</span>B</div>
+          <div class="problem-stat-label">Tonnes of waste<br>generated yearly</div>
+          <div class="problem-stat-source">World Bank 2024</div>
+        </div>
+        <div class="problem-stat-card" style="--card-stat-color: #F5A623;">
+          <div class="problem-stat-value"><span>33</span>%</div>
+          <div class="problem-stat-label">Waste globally<br>mismanaged</div>
+          <div class="problem-stat-source">UN Environment</div>
+        </div>
+        <div class="problem-stat-card" style="--card-stat-color: #A78BFA;">
+          <div class="problem-stat-value">$<span>375</span>B</div>
+          <div class="problem-stat-label">Annual cost of<br>waste mismanagement</div>
+          <div class="problem-stat-source">ISWA Global Report</div>
+        </div>
+        <div class="problem-stat-card" style="--card-stat-color: #00A896;">
+          <div class="problem-stat-value"><span>15</span>M</div>
+          <div class="problem-stat-label">Informal workers<br>exposed to hazards</div>
+          <div class="problem-stat-source">ILO Report 2023</div>
+        </div>
+      </div>
+
       <div class="problem-grid">
         <div class="problem-card reveal" style="--card-accent: #F4623A;">
           <div class="problem-num">01 —</div>
           <span class="problem-icon">🌍</span>
           <h3>Environmental Damage</h3>
           <p>Unsegregated waste contaminates soil, water, and air — accelerating climate change and collapsing
-            ecosystems worldwide.</p>
+            ecosystems worldwide. Landfills emit 1.6 billion tonnes of CO₂-equivalent greenhouse gases per year.</p>
+          <div class="problem-card-stat">
+            <div class="problem-card-stat-value">1.6B</div>
+            <div class="problem-card-stat-desc">Tonnes CO₂ from<br>landfills yearly</div>
+          </div>
         </div>
         <div class="problem-card reveal reveal-delay-1" style="--card-accent: #F5A623;">
           <div class="problem-num">02 —</div>
           <span class="problem-icon">⚠️</span>
           <h3>Inefficient Sorting</h3>
-          <p>Manual classification is slow, error-prone, and exposes workers to hazardous materials. Recycling rates
-            remain critically low.</p>
+          <p>Manual classification achieves only 40-60% accuracy, is slow, error-prone, and exposes workers to
+            hazardous materials. Only 13.5% of waste is recycled globally — the rest ends up in landfill or oceans.</p>
+          <div class="problem-card-stat">
+            <div class="problem-card-stat-value">13.5%</div>
+            <div class="problem-card-stat-desc">Global waste<br>recycling rate</div>
+          </div>
         </div>
         <div class="problem-card reveal reveal-delay-2" style="--card-accent: #00A896;">
           <div class="problem-num">03 —</div>
           <span class="problem-icon">🗑</span>
           <h3>No Intelligence</h3>
           <p>Existing bins are passive. Without real-time classification, recyclables and organics get
-            cross-contaminated, ending up in landfill.</p>
+            cross-contaminated. By 2050, waste generation is projected to increase by 70% to 3.4 billion
+            tonnes annually.</p>
+          <div class="problem-card-stat">
+            <div class="problem-card-stat-value">3.4B</div>
+            <div class="problem-card-stat-desc">Tonnes projected<br>by 2050</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2514,13 +2843,13 @@
               <circle class="fill" cx="160" cy="160" r="140" />
             </svg>
             <div class="acc-center">
-              <div class="acc-pct">90<span>.14%</span></div>
+              <div class="acc-pct">90.14<span>%</span></div>
               <div class="acc-label">Classification<br>Accuracy</div>
             </div>
           </div>
           <p
             style="text-align:center; font-size:14px; color:var(--muted); font-family: var(--ff-mono); font-size:11px; letter-spacing:1px;">
-            BENCHMARKED ON 9-CLASS TEST DATASET</p>
+            BENCHMARKED ON 9-CLASS TEST DATASET (2,364 SAMPLES)</p>
         </div>
 
         <div class="cat-bars reveal reveal-delay-2">
@@ -2528,63 +2857,63 @@
             style="font-family:var(--ff-display); font-size:24px; font-weight:700; color:var(--white); margin-bottom:28px;">
             Per-Category Precision</h3>
           <div class="cat-bar-row">
+            <div class="cat-name">Organic</div>
+            <div class="cat-track">
+              <div class="cat-fill" style="width:96%; animation-delay:0.1s;"></div>
+            </div>
+            <div class="cat-pct">96%</div>
+          </div>
+          <div class="cat-bar-row">
             <div class="cat-name">Cardboard</div>
             <div class="cat-track">
-              <div class="cat-fill" style="width:93%; animation-delay:0.1s;"></div>
+              <div class="cat-fill" style="width:91%; animation-delay:0.2s;"></div>
             </div>
-            <div class="cat-pct">93%</div>
+            <div class="cat-pct">91%</div>
           </div>
           <div class="cat-bar-row">
-            <div class="cat-name">Paper</div>
-            <div class="cat-track">
-              <div class="cat-fill" style="width:92%; animation-delay:0.2s;"></div>
-            </div>
-            <div class="cat-pct">92%</div>
-          </div>
-          <div class="cat-bar-row">
-            <div class="cat-name">Glass</div>
+            <div class="cat-name">E-Waste</div>
             <div class="cat-track">
               <div class="cat-fill" style="width:91%; animation-delay:0.3s;"></div>
             </div>
             <div class="cat-pct">91%</div>
           </div>
           <div class="cat-bar-row">
-            <div class="cat-name">Metal</div>
+            <div class="cat-name">Glass</div>
             <div class="cat-track">
               <div class="cat-fill" style="width:90%; animation-delay:0.4s;"></div>
             </div>
             <div class="cat-pct">90%</div>
           </div>
           <div class="cat-bar-row">
-            <div class="cat-name">Plastic</div>
+            <div class="cat-name">Metal</div>
             <div class="cat-track">
-              <div class="cat-fill" style="width:89%; animation-delay:0.5s;"></div>
+              <div class="cat-fill" style="width:90%; animation-delay:0.5s;"></div>
+            </div>
+            <div class="cat-pct">90%</div>
+          </div>
+          <div class="cat-bar-row">
+            <div class="cat-name">Paper</div>
+            <div class="cat-track">
+              <div class="cat-fill" style="width:90%; animation-delay:0.6s;"></div>
+            </div>
+            <div class="cat-pct">90%</div>
+          </div>
+          <div class="cat-bar-row">
+            <div class="cat-name">Foam</div>
+            <div class="cat-track">
+              <div class="cat-fill" style="width:89%; animation-delay:0.7s;"></div>
             </div>
             <div class="cat-pct">89%</div>
           </div>
           <div class="cat-bar-row">
-            <div class="cat-name">E-Waste</div>
-            <div class="cat-track">
-              <div class="cat-fill" style="width:88%; animation-delay:0.6s;"></div>
-            </div>
-            <div class="cat-pct">88%</div>
-          </div>
-          <div class="cat-bar-row">
-            <div class="cat-name">Medical</div>
-            <div class="cat-track">
-              <div class="cat-fill" style="width:88%; animation-delay:0.7s;"></div>
-            </div>
-            <div class="cat-pct">88%</div>
-          </div>
-          <div class="cat-bar-row">
-            <div class="cat-name">Organic</div>
+            <div class="cat-name">Plastic</div>
             <div class="cat-track">
               <div class="cat-fill" style="width:87%; animation-delay:0.8s;"></div>
             </div>
             <div class="cat-pct">87%</div>
           </div>
           <div class="cat-bar-row">
-            <div class="cat-name">Foam</div>
+            <div class="cat-name">Medical</div>
             <div class="cat-track">
               <div class="cat-fill" style="width:85%; animation-delay:0.9s;"></div>
             </div>
@@ -2609,7 +2938,7 @@
           <span class="cat-emoji">📦</span>
           <div class="cat-info">
             <h4>Cardboard</h4>
-            <p>93% precision</p>
+            <p>91% precision</p>
           </div>
           <div class="cat-dot" style="background:#F5A623;"></div>
         </div>
@@ -2617,7 +2946,7 @@
           <span class="cat-emoji">🔌</span>
           <div class="cat-info">
             <h4>E-Waste</h4>
-            <p>88% precision</p>
+            <p>91% precision</p>
           </div>
           <div class="cat-dot" style="background:#F4623A;"></div>
         </div>
@@ -2625,7 +2954,7 @@
           <span class="cat-emoji">🫧</span>
           <div class="cat-info">
             <h4>Foam</h4>
-            <p>85% precision</p>
+            <p>89% precision</p>
           </div>
           <div class="cat-dot" style="background:#A78BFA;"></div>
         </div>
@@ -2633,7 +2962,7 @@
           <span class="cat-emoji">🍶</span>
           <div class="cat-info">
             <h4>Glass</h4>
-            <p>91% precision</p>
+            <p>90% precision</p>
           </div>
           <div class="cat-dot" style="background:#38BDF8;"></div>
         </div>
@@ -2649,7 +2978,7 @@
           <span class="cat-emoji">📄</span>
           <div class="cat-info">
             <h4>Paper</h4>
-            <p>92% precision</p>
+            <p>90% precision</p>
           </div>
           <div class="cat-dot" style="background:#86EFAC;"></div>
         </div>
@@ -2657,7 +2986,7 @@
           <span class="cat-emoji">🧴</span>
           <div class="cat-info">
             <h4>Plastic</h4>
-            <p>89% precision</p>
+            <p>87% precision</p>
           </div>
           <div class="cat-dot" style="background:#1B4F72;"></div>
         </div>
@@ -2665,7 +2994,7 @@
           <span class="cat-emoji">🍂</span>
           <div class="cat-info">
             <h4>Organic</h4>
-            <p>87% precision</p>
+            <p>96% precision</p>
           </div>
           <div class="cat-dot" style="background:#4ADE80;"></div>
         </div>
@@ -2673,7 +3002,7 @@
           <span class="cat-emoji">💊</span>
           <div class="cat-info">
             <h4>Medical</h4>
-            <p>88% precision</p>
+            <p>85% precision</p>
           </div>
           <div class="cat-dot" style="background:#F9A8D4;"></div>
         </div>
@@ -3133,15 +3462,15 @@
 
     /* ─── Smart Bin Simulation Cycle ─── */
     const simItems = [
-      { emoji: '🧴', name: 'Plastic', conf: 92, deg: 90, binId: 'binPlastic', binEmoji: '🧴' },
-      { emoji: '📦', name: 'Cardboard', conf: 96, deg: 45, binId: 'binCardboard', binEmoji: '📦' },
-      { emoji: '🍶', name: 'Glass', conf: 91, deg: 180, binId: 'binGlass', binEmoji: '🍶' },
-      { emoji: '🥫', name: 'Metal', conf: 93, deg: 135, binId: 'binMetal', binEmoji: '🥫' },
-      { emoji: '🍂', name: 'Organic', conf: 87, deg: 0, binId: 'binOrganic', binEmoji: '🍂' },
-      { emoji: '📄', name: 'Paper', conf: 92, deg: 60, binId: 'binCardboard', binEmoji: '📄' },
-      { emoji: '🔌', name: 'E-Waste', conf: 88, deg: 120, binId: 'binMetal', binEmoji: '🔌' },
-      { emoji: '💊', name: 'Medical', conf: 90, deg: 150, binId: 'binGlass', binEmoji: '💊' },
-      { emoji: '🫧', name: 'Foam', conf: 85, deg: 30, binId: 'binOrganic', binEmoji: '🫧' },
+      { emoji: '🧴', name: 'Plastic', conf: 87, deg: 90, binId: 'binPlastic', binEmoji: '🧴' },
+      { emoji: '📦', name: 'Cardboard', conf: 91, deg: 45, binId: 'binCardboard', binEmoji: '📦' },
+      { emoji: '🍶', name: 'Glass', conf: 90, deg: 180, binId: 'binGlass', binEmoji: '🍶' },
+      { emoji: '🥫', name: 'Metal', conf: 90, deg: 135, binId: 'binMetal', binEmoji: '🥫' },
+      { emoji: '🍂', name: 'Organic', conf: 96, deg: 0, binId: 'binOrganic', binEmoji: '🍂' },
+      { emoji: '📄', name: 'Paper', conf: 90, deg: 60, binId: 'binCardboard', binEmoji: '📄' },
+      { emoji: '🔌', name: 'E-Waste', conf: 91, deg: 120, binId: 'binMetal', binEmoji: '🔌' },
+      { emoji: '💊', name: 'Medical', conf: 85, deg: 150, binId: 'binGlass', binEmoji: '💊' },
+      { emoji: '🫧', name: 'Foam', conf: 89, deg: 30, binId: 'binOrganic', binEmoji: '🫧' },
     ];
     let simIdx = 0;
     let simStep = 1;
