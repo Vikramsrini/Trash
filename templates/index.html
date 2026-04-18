@@ -1,329 +1,1302 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>♻️ VisionBin Detector</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Bin — Live Detection</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A1628'/%3E%3Cpath d='M32 12 L22 28 H42 Z' fill='none' stroke='%2300A896' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M20 48 L15 32 H30 Z' fill='none' stroke='%2302C39A' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M44 48 L49 32 H34 Z' fill='none' stroke='%2300A896' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M27 20 C24 15 20 18 22 22' stroke='%2302C39A' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M18 40 C14 42 17 47 21 45' stroke='%2300A896' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M46 40 C50 38 48 33 44 34' stroke='%2302C39A' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+    <meta name="description"
+        content="Vision Bin AI-powered real-time waste classification using YOLOv8 and LeViT on a live webcam feed.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════════
+       RESET & TOKENS
+    ═══════════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    header {
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      padding: 18px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
+        :root {
+            --ink: #0A1628;
+            --deep: #0D1F35;
+            --navy: #1B4F72;
+            --teal: #00A896;
+            --mint: #02C39A;
+            --coral: #F4623A;
+            --gold: #F5A623;
+            --fog: rgba(0, 168, 150, 0.08);
+            --border: rgba(0, 168, 150, 0.18);
+            --text: #C8DCE8;
+            --muted: #6B8BA4;
+            --white: #F0F6FA;
+            --ff-display: 'Syne', sans-serif;
+            --ff-mono: 'Space Mono', monospace;
+            --ff-body: 'DM Sans', sans-serif;
+        }
 
-    header h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 1.2px;
-      text-shadow: 0 0 6px rgba(0,0,0,0.5);
-    }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    .container {
-      max-width: 960px;
-      margin: 30px auto;
-      padding: 20px;
-      background: rgba(255,255,255,0.07);
-      backdrop-filter: blur(10px);
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
+        body {
+            background: var(--ink);
+            color: var(--text);
+            font-family: var(--ff-body);
+            font-size: 16px;
+            line-height: 1.65;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-    .camera-area {
-      margin: 20px 0;
-      padding: 20px;
-      border: 2px dashed rgba(255,255,255,0.3);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: all 0.3s ease;
-    }
+        /* ═══════════════════════════════════════════════
+       NOISE OVERLAY
+    ═══════════════════════════════════════════════ */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9990;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
 
-    .camera-area:hover {
-      border-color: #00c6ff;
-      background: rgba(0,198,255,0.08);
-    }
+        /* ═══════════════════════════════════════════════
+       BACKGROUND GRID
+    ═══════════════════════════════════════════════ */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(0, 168, 150, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 150, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+            animation: grid-move 25s linear infinite;
+        }
 
-    video {
-      border-radius: 14px;
-      border: 2px solid #00c6ff;
-      width: 100%;
-      height: auto;
-      max-width: 100%;
-      margin-bottom: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-    }
+        @keyframes grid-move {
+            from {
+                background-position: 0 0;
+            }
 
-    button {
-      margin-top: 20px;
-      padding: 12px 28px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
+            to {
+                background-position: 60px 60px;
+            }
+        }
 
-    button:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 20px rgba(0,198,255,0.5);
-    }
+        /* ═══════════════════════════════════════════════
+       FLOATING ORBS
+    ═══════════════════════════════════════════════ */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-    #preview {
-      margin-top: 25px;
-      display: flex;
-      justify-content: center;
-    }
+        .orb-1 {
+            width: 420px;
+            height: 420px;
+            background: rgba(0, 168, 150, 0.10);
+            top: -8%;
+            left: -6%;
+            animation: orb-float 10s ease-in-out infinite;
+        }
 
-    canvas {
-      max-width: 100%;
-      border-radius: 14px;
-      border: 2px solid #00c6ff;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-    }
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: rgba(244, 98, 58, 0.06);
+            bottom: 5%;
+            right: -4%;
+            animation: orb-float 10s ease-in-out infinite -4s;
+        }
 
-    /* Collapsible Results Drawer */
-    .results-drawer {
-      position: fixed;
-      top: 0;
-      right: -350px;
-      width: 350px;
-      height: 100%;
-      background: rgba(20,20,20,0.97);
-      backdrop-filter: blur(10px);
-      box-shadow: -5px 0 25px rgba(0,0,0,0.6);
-      padding: 20px;
-      transition: right 0.4s ease;
-      overflow-y: auto;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-    }
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: rgba(2, 195, 154, 0.08);
+            top: 55%;
+            left: 55%;
+            animation: orb-float 10s ease-in-out infinite -7s;
+        }
 
-    .results-drawer.open {
-      right: 0;
-    }
+        @keyframes orb-float {
 
-    .results-drawer h3 {
-      margin-top: 0;
-      color: #00ffb3;
-      font-size: 1.3rem;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding-bottom: 8px;
-    }
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
 
-    .result-item {
-      margin-bottom: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.07);
-      border-radius: 10px;
-      border-left: 5px solid #00ff88;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-      animation: fadeInUp 0.4s ease;
-    }
+            50% {
+                transform: translateY(-25px) scale(1.06);
+            }
+        }
 
-    .result-label {
-      font-weight: bold;
-      color: #fff;
-      font-size: 1.1rem;
-    }
+        /* ═══════════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════════ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 40px;
+            background: rgba(10, 22, 40, 0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
 
-    .result-bbox {
-      color: #7ed6df;
-      font-size: 0.9rem;
-      margin-left: 10px;
-    }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--ff-display);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--white);
+            text-decoration: none;
+        }
 
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        .nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--teal);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            animation: logo-pulse 3s ease-in-out infinite;
+        }
 
-    /* Close button inside drawer */
-    .close-btn {
-      align-self: flex-end;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: #fff;
-      cursor: pointer;
-      transition: color 0.3s ease;
-    }
+        @keyframes logo-pulse {
 
-    .close-btn:hover {
-      color: #00c6ff;
-    }
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 168, 150, 0.4);
+            }
 
-    /* Floating Toggle Button */
-    #toggleResults {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 55px;
-      height: 55px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-      transition: all 0.3s ease;
-      z-index: 1100;
-    }
+            50% {
+                box-shadow: 0 0 0 8px rgba(0, 168, 150, 0);
+            }
+        }
 
-    #toggleResults:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 25px rgba(0,198,255,0.6);
-    }
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--ff-mono);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
 
-    /* Responsive tweaks */
-    @media (max-width: 900px) {
-      .container {
-        margin: 20px;
-        padding: 15px;
-      }
-      .results-drawer {
-        width: 280px;
-      }
-    }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+            animation: blink-dot 1.8s ease-in-out infinite;
+        }
 
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.4rem;
-      }
-      button {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-      }
-      .results-drawer {
-        width: 100%;
-      }
-    }
-  </style>
+        @keyframes blink-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════ */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 90px 24px 40px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            min-height: 100vh;
+            align-content: start;
+        }
+
+        /* ═══════════════════════════════════════════════
+       VIDEO PANEL
+    ═══════════════════════════════════════════════ */
+        .video-panel {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
+            position: relative;
+            backdrop-filter: none;
+            box-shadow: none;
+            transition: box-shadow 0.3s;
+        }
+
+        .video-panel:hover {
+            box-shadow: none;
+            border-color: transparent;
+        }
+
+        .video-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(0, 168, 150, 0.15);
+            background: rgba(10, 22, 40, 0.6);
+            backdrop-filter: blur(4px);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .video-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cam-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 5px rgba(0, 168, 150, 0.6));
+        }
+
+        .video-header h2 {
+            font-family: var(--ff-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--white);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--ff-mono);
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--coral);
+            background: rgba(244, 98, 58, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(244, 98, 58, 0.25);
+            box-shadow: 0 0 10px rgba(244, 98, 58, 0.1);
+        }
+
+        .live-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--coral);
+            box-shadow: 0 0 8px var(--coral);
+            animation: blink-dot 1s ease-in-out infinite;
+        }
+
+        .video-feed-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .video-feed-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Enhance contrast for tech feel */
+            filter: contrast(1.05) saturate(1.1);
+        }
+
+        /* Tech Overlay Grid */
+        .scan-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 168, 150, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 150, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* CRT Scanlines */
+        .scanlines {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Scanner sweep on the feed */
+        .scanner-sweep {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--teal), transparent);
+            box-shadow: 0 0 20px var(--teal);
+            opacity: 0.8;
+            animation: scan 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 5%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.8;
+            }
+
+            90% {
+                opacity: 0.8;
+            }
+
+            100% {
+                top: 95%;
+                opacity: 0;
+            }
+        }
+
+        /* Corner brackets */
+        .bracket {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 5;
+            transition: all 0.3s;
+        }
+
+        /* Interactive brackets on hover */
+        .video-panel:hover .bracket {
+            width: 50px;
+            height: 50px;
+            border-color: var(--mint);
+        }
+
+        .bracket::before,
+        .bracket::after {
+            content: '';
+            position: absolute;
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+        }
+
+        .bracket-tl {
+            top: 60px;
+            left: 20px;
+        }
+
+        .bracket-tl::before {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+        }
+
+        .bracket-tl::after {
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+        }
+
+        .bracket-tr {
+            top: 60px;
+            right: 20px;
+        }
+
+        .bracket-tr::before {
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 2px;
+        }
+
+        .bracket-tr::after {
+            top: 0;
+            right: 0;
+            width: 2px;
+            height: 100%;
+        }
+
+        .bracket-bl {
+            bottom: 50px;
+            left: 20px;
+        }
+
+        .bracket-bl::before {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+        }
+
+        .bracket-bl::after {
+            bottom: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+        }
+
+        .bracket-br {
+            bottom: 50px;
+            right: 20px;
+        }
+
+        .bracket-br::before {
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 2px;
+        }
+
+        .bracket-br::after {
+            bottom: 0;
+            right: 0;
+            width: 2px;
+            height: 100%;
+        }
+
+        /* Footer */
+        .video-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-top: 1px solid rgba(0, 168, 150, 0.15);
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(4px);
+            font-family: var(--ff-mono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+
+        /* ═══════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════ */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            grid-column: 2 / 3;
+            grid-row: 1 / span 2;
+        }
+
+        .env-card-below {
+            grid-column: 1 / 2;
+        }
+
+        /* Detection Card */
+        .detection-card {
+            background: var(--deep);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.4s;
+        }
+
+        .detection-card.active {
+            border-color: var(--teal);
+            box-shadow: 0 0 30px rgba(0, 168, 150, 0.12);
+        }
+
+        .card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--ff-mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header span {
+            color: var(--teal);
+        }
+
+        .detection-body {
+            padding: 32px 20px;
+            text-align: center;
+        }
+
+        .detection-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .detection-card.active .detection-icon {
+            animation: icon-pop 0.4s ease;
+        }
+
+        @keyframes icon-pop {
+            0% {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .detection-label {
+            font-family: var(--ff-display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            text-transform: capitalize;
+            margin-bottom: 6px;
+            transition: color 0.3s;
+            min-height: 40px;
+        }
+
+        .detection-sublabel {
+            font-family: var(--ff-mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .no-detection {
+            color: var(--muted);
+            font-family: var(--ff-mono);
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Category list */
+        .category-card {
+            background: var(--deep);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 6px 0;
+        }
+
+        .category-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            font-family: var(--ff-mono);
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: capitalize;
+            transition: background 0.2s, color 0.2s;
+            cursor: default;
+        }
+
+        .category-list li .cat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.3s, box-shadow 0.3s;
+            flex-shrink: 0;
+        }
+
+        .category-list li.highlight {
+            background: rgba(0, 168, 150, 0.06);
+            color: var(--teal);
+        }
+
+        .category-list li.highlight .cat-dot {
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+        }
+
+        /* Info card */
+        .info-card {
+            background: var(--deep);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .info-card h4 {
+            font-family: var(--ff-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .info-card .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .tech-tag {
+            font-family: var(--ff-mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--teal);
+            background: var(--fog);
+        }
+
+        /* ═══════════════════════════════════════════════
+       CATEGORY STRIP (bottom)
+    ═══════════════════════════════════════════════ */
+        .category-strip {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 2px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .strip-item {
+            background: var(--deep);
+            padding: 18px 12px;
+            text-align: center;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strip-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--teal);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+
+        .strip-item.active::before {
+            transform: scaleX(1);
+        }
+
+        .strip-item.active {
+            background: rgba(0, 168, 150, 0.06);
+        }
+
+        .strip-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .strip-label {
+            font-family: var(--ff-mono);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            transition: color 0.3s;
+        }
+
+        .strip-item.active .strip-label {
+            color: var(--teal);
+        }
+
+        /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                padding: 90px 16px 40px;
+            }
+
+            .sidebar,
+            .env-card-below {
+                grid-column: auto;
+                grid-row: auto;
+            }
+
+            nav {
+                padding: 14px 20px;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════
+       ENVIRO-METRICS CARD
+    ═══════════════════════════════════════════════ */
+        .env-card {
+            background: rgba(13, 31, 53, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .env-card.active {
+            border-color: var(--teal);
+            box-shadow: 0 0 20px rgba(0, 168, 150, 0.15);
+        }
+
+        .env-header {
+            padding: 12px 20px;
+            background: rgba(0, 168, 150, 0.1);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .env-title {
+            font-family: var(--ff-display);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-toggle {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s;
+            background: var(--deep);
+            user-select: none;
+        }
+
+        .audio-toggle:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        .audio-toggle.active {
+            background: var(--teal);
+            color: var(--ink);
+            border-color: var(--teal);
+            box-shadow: 0 0 10px var(--teal);
+        }
+
+        .env-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0.5;
+            transform: translateX(-5px);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .env-card.active .metric-row {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Staggered delay for rows */
+        .env-card.active .metric-row:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .env-card.active .metric-row:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        .env-card.active .metric-row:nth-child(3) {
+            transition-delay: 0.3s;
+        }
+
+        .metric-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--muted);
+            transition: all 0.3s;
+        }
+
+        .env-card.active .metric-icon {
+            border-color: var(--teal);
+            color: var(--teal);
+            background: rgba(0, 168, 150, 0.1);
+        }
+
+        .metric-content {
+            flex: 1;
+        }
+
+        .metric-label {
+            font-family: var(--ff-mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-family: var(--ff-body);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--white);
+            transition: color 0.3s;
+        }
+
+        .metric-value.highlight {
+            color: var(--mint);
+            text-shadow: 0 0 10px rgba(2, 195, 154, 0.3);
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(0, 168, 150, 0) 0%, rgba(0, 168, 150, 0.1) 50%, rgba(0, 168, 150, 0) 100%);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .scan-anim {
+            animation: env-scan 1.2s ease-in-out;
+        }
+
+        @keyframes env-scan {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            30% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <header>
-    <h1>♻️ VisionBin: Smart Waste Detection</h1>
-  </header>
+    <!-- Background decoration -->
+    <div class="bg-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 
-  <div class="container">
-    <div class="camera-area">
-      <video id="video" autoplay playsinline></video>
-      <button id="captureBtn">📸 Capture & Detect</button>
+    <!-- Nav -->
+    <nav>
+        <a href="/" class="nav-logo" id="nav-logo">
+            <div class="nav-logo-icon">♻️</div>
+            Vision Bin
+        </a>
+        <div class="nav-status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Connecting…</span>
+        </div>
+    </nav>
+
+    <!-- Main layout -->
+    <div class="app-container">
+
+        <!-- ——— Video Panel ——— -->
+        <div class="video-panel" id="video-panel">
+            <div class="video-header">
+                <div class="video-header-left">
+                    <span class="cam-icon">📷</span>
+                    <h2>Camera Feed</h2>
+                </div>
+                <div class="live-badge">
+                    <div class="live-badge-dot"></div> Live
+                </div>
+            </div>
+
+            <div class="video-feed-wrapper">
+                <div class="scanlines"></div>
+                <div class="scan-grid"></div>
+                <img src="/video_feed" alt="Live webcam feed with AI detection overlay" id="video-feed">
+                <div class="scanner-sweep"></div>
+
+                <!-- Tech Brackets -->
+                <div class="bracket bracket-tl"></div>
+                <div class="bracket bracket-tr"></div>
+                <div class="bracket bracket-bl"></div>
+                <div class="bracket bracket-br"></div>
+            </div>
+
+            <div class="video-footer">
+                <span>YOLOv8n + LeViT</span>
+                <span id="fps-counter">— fps</span>
+                <span id="timestamp">00:00:00</span>
+            </div>
+        </div>
+
+        <!-- Enviro-Metrics Card (below feed) -->
+        <div class="env-card env-card-below" id="env-card">
+            <div class="scan-overlay" id="env-scan-overlay"></div>
+            <div class="env-header">
+                <div class="env-title"><span>🌱</span> Eco-Impact</div>
+                <div class="audio-toggle" id="audio-toggle" title="Enable Voice Feedback">�</div>
+            </div>
+            <div class="env-body">
+                <!-- Metric 1: Decomposition -->
+                <div class="metric-row">
+                    <div class="metric-icon">⏳</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Decomposition Time</div>
+                        <div class="metric-value detail-time" id="val-time">Scanning...</div>
+                    </div>
+                </div>
+                <!-- Metric 2: Energy -->
+                <div class="metric-row">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Energy Saved</div>
+                        <div class="metric-value highlight detail-save" id="val-save">—</div>
+                    </div>
+                </div>
+                <!-- Metric 3: Recyclability -->
+                <div class="metric-row">
+                    <div class="metric-icon">♻️</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Recyclability</div>
+                        <div class="metric-value detail-cycle" id="val-cycle">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ——— Sidebar ——— -->
+        <aside class="sidebar">
+
+            <!-- Detection result -->
+            <div class="detection-card" id="detection-card">
+                <div class="card-header">
+                    <span>⬡</span> Detected Waste
+                </div>
+                <div class="detection-body">
+                    <span class="detection-icon" id="detection-icon">🔍</span>
+                    <div class="detection-label" id="detection-label">
+                        <span class="no-detection">Scanning…</span>
+                    </div>
+                    <div class="detection-sublabel" id="detection-sub">Awaiting detection</div>
+                </div>
+            </div>
+
+            <!-- Category list -->
+            <div class="category-card">
+                <div class="card-header">
+                    <span>⬡</span> Waste Categories
+                </div>
+                <ul class="category-list" id="category-list">
+                    <li data-class="cardboard"> <span class="cat-dot"></span> 📦 Cardboard</li>
+                    <li data-class="e-waste"> <span class="cat-dot"></span> 🔌 E-Waste</li>
+                    <li data-class="foam_rubber"><span class="cat-dot"></span> 🧽 Foam Rubber</li>
+                    <li data-class="glass"> <span class="cat-dot"></span> 🥛 Glass</li>
+                    <li data-class="medical"> <span class="cat-dot"></span> 💊 Medical</li>
+                    <li data-class="metal"> <span class="cat-dot"></span> 🔩 Metal</li>
+                    <li data-class="organic"> <span class="cat-dot"></span> 🍂 Organic</li>
+                    <li data-class="paper"> <span class="cat-dot"></span> 📄 Paper</li>
+                    <li data-class="plastic"> <span class="cat-dot"></span> 🧴 Plastic</li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <!-- ——— Bottom category strip ——— -->
+        <div class="category-strip" id="category-strip">
+            <div class="strip-item" data-class="cardboard"> <span class="strip-icon">📦</span><span
+                    class="strip-label">Cardboard</span></div>
+            <div class="strip-item" data-class="e-waste"> <span class="strip-icon">🔌</span><span
+                    class="strip-label">E-Waste</span></div>
+            <div class="strip-item" data-class="foam_rubber"><span class="strip-icon">🧽</span><span
+                    class="strip-label">Foam</span></div>
+            <div class="strip-item" data-class="glass"> <span class="strip-icon">🥛</span><span
+                    class="strip-label">Glass</span></div>
+            <div class="strip-item" data-class="medical"> <span class="strip-icon">💊</span><span
+                    class="strip-label">Medical</span></div>
+            <div class="strip-item" data-class="metal"> <span class="strip-icon">🔩</span><span
+                    class="strip-label">Metal</span></div>
+            <div class="strip-item" data-class="organic"> <span class="strip-icon">🍂</span><span
+                    class="strip-label">Organic</span></div>
+            <div class="strip-item" data-class="paper"> <span class="strip-icon">📄</span><span
+                    class="strip-label">Paper</span></div>
+            <div class="strip-item" data-class="plastic"> <span class="strip-icon">🧴</span><span
+                    class="strip-label">Plastic</span></div>
+        </div>
     </div>
 
-    <div id="preview">
-      <canvas id="canvas"></canvas>
-    </div>
-  </div>
+    <script>
+        /* ──────────────────────────────────────────────
+           CLASS → ICON MAP
+        ────────────────────────────────────────────── */
+        const classIcons = {
+            cardboard: '📦',
+            'e-waste': '🔌',
+            foam_rubber: '🧽',
+            glass: '🥛',
+            medical: '💊',
+            metal: '🔩',
+            organic: '🍂',
+            paper: '📄',
+            plastic: '🧴',
+        };
 
-  <!-- Results Drawer -->
-  <div id="resultsDrawer" class="results-drawer">
-    <button class="close-btn" id="closeDrawer">✖</button>
-    <h3>Detection Results</h3>
-    <div id="output"><span style="color:#fff;">No detections yet...</span></div>
-  </div>
+        /* ──────────────────────────────────────────────
+           DOM REFS
+        ────────────────────────────────────────────── */
+        const detectionCard = document.getElementById('detection-card');
+        const detectionIcon = document.getElementById('detection-icon');
+        const detectionLabel = document.getElementById('detection-label');
+        const detectionSub = document.getElementById('detection-sub');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const timestampEl = document.getElementById('timestamp');
+        const categoryItems = document.querySelectorAll('#category-list li');
+        const stripItems = document.querySelectorAll('#category-strip .strip-item');
 
-  <!-- Floating Button -->
-  <button id="toggleResults">📊</button>
+        // Enviro-Metrics Refs
+        const envCard = document.getElementById('env-card');
+        const envScanOverlay = document.getElementById('env-scan-overlay');
+        const valTime = document.getElementById('val-time');
+        const valSave = document.getElementById('val-save');
+        const valCycle = document.getElementById('val-cycle');
+        const audioBtn = document.getElementById('audio-toggle');
 
-  <script>
-    const serverURL = "http://127.0.0.1:5000/predict";
+        /* ──────────────────────────────────────────────
+           IMPACT DATA
+        ────────────────────────────────────────────── */
+        const impactData = {
+            plastic: { time: '450 Years', save: '2x Energy vs New', cycle: 'High Potential' },
+            glass: { time: '1 Million Years', save: '30% Energy Saved', cycle: '100% Infinite' },
+            metal: { time: '50-500 Years', save: '95% Energy Saved', cycle: '100% Infinite' },
+            organic: { time: '4-6 Weeks', save: ' compost soil', cycle: 'Natural Cycle' },
+            paper: { time: '2-6 Weeks', save: '17 Trees/Ton', cycle: 'High (5-7x)' },
+            cardboard: { time: '2 Months', save: 'Oil & Water', cycle: 'High' },
+            'e-waste': { time: 'Indefinite', save: 'Rare Earth Metals', cycle: 'Critical Recovery' },
+            medical: { time: 'N/A', save: 'Hazard Recovery', cycle: 'Specialized Only' },
+            foam_rubber: { time: '50+ Years', save: 'Landfill Space', cycle: 'Low / Difficult' }
+        };
 
-    const video = document.getElementById("video");
-    const resultsDrawer = document.getElementById("resultsDrawer");
-    const toggleResultsBtn = document.getElementById("toggleResults");
-    const closeDrawerBtn = document.getElementById("closeDrawer");
+        let prevClass = '';
+        let connected = false;
+        let audioEnabled = false;
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        alert("Camera access denied or not available.");
-      });
-
-    function displayResults(detections) {
-      const output = document.getElementById("output");
-      output.innerHTML = "";
-
-      if (!detections.length) {
-        output.innerHTML = '<span style="color:#fff;">No detections found.</span>';
-      } else {
-        detections.forEach(det => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-          item.innerHTML = `
-            <span class="result-label">${det.class}</span>
-            <span class="result-bbox">[${det.bbox.join(", ")}]</span>
-          `;
-          output.appendChild(item);
+        // Audio Toggle
+        audioBtn.addEventListener('click', () => {
+            audioEnabled = !audioEnabled;
+            audioBtn.classList.toggle('active', audioEnabled);
+            audioBtn.textContent = audioEnabled ? '🔊' : '🔇';
         });
-      }
 
-      // Auto-open drawer when new results
-      resultsDrawer.classList.add("open");
-    }
+        /* ──────────────────────────────────────────────
+           POLL /latest EVERY 800ms
+        ────────────────────────────────────────────── */
+        async function pollLatest() {
+            try {
+                const res = await fetch('/latest');
+                const data = await res.json();
 
-    document.getElementById("captureBtn").onclick = async function() {
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                if (!connected) {
+                    connected = true;
+                    statusDot.style.background = 'var(--teal)';
+                    statusDot.style.boxShadow = '0 0 8px var(--teal)';
+                    statusText.textContent = 'Streaming';
+                }
 
-      canvas.toBlob(async function(blob) {
-        const formData = new FormData();
-        formData.append("image", blob, "frame.jpg");
+                const cls = data['class'] || '';
 
-        const response = await fetch(serverURL, {
-          method: "POST",
-          body: formData
-        });
-        const result = await response.json();
+                if (cls && cls !== prevClass) {
+                    prevClass = cls;
 
-        displayResults(result.detections);
+                    // Update detection card
+                    detectionCard.classList.add('active');
+                    detectionIcon.textContent = classIcons[cls] || '❓';
+                    detectionLabel.innerHTML = cls.replace('_', ' / ');
+                    detectionSub.textContent = 'Classified • ' + new Date().toLocaleTimeString();
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#00ff88";
-        ctx.lineWidth = 3;
-        ctx.font = "22px Segoe UI";
-        ctx.fillStyle = "#00ff88";
+                    // Highlight category list
+                    categoryItems.forEach(li => {
+                        li.classList.toggle('highlight', li.dataset.class === cls);
+                    });
 
-        result.detections.forEach(det => {
-          let [x1, y1, x2, y2] = det.bbox;
-          ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-          ctx.fillText(det.class, x1, y1 > 20 ? y1 - 5 : y1 + 25);
-        });
-      }, "image/jpeg");
-    };
 
-    // Toggle drawer
-    toggleResultsBtn.onclick = () => {
-      resultsDrawer.classList.toggle("open");
-    };
+                    // Highlight bottom strip
+                    stripItems.forEach(s => {
+                        s.classList.toggle('active', s.dataset.class === cls);
+                    });
 
-    // Close drawer
-    closeDrawerBtn.onclick = () => {
-      resultsDrawer.classList.remove("open");
-    };
-  </script>
+                    // Update Enviro-Metrics
+                    updateEnvCard(cls);
+                }
+
+                if (!cls) {
+                    detectionCard.classList.remove('active');
+                    detectionIcon.textContent = '🔍';
+                    detectionLabel.innerHTML = '<span class="no-detection">Scanning…</span>';
+                    detectionSub.textContent = 'Awaiting detection';
+                    categoryItems.forEach(li => li.classList.remove('highlight'));
+                    stripItems.forEach(s => s.classList.remove('active'));
+                    envCard.classList.remove('active');
+                    prevClass = '';
+                }
+            } catch {
+                if (connected) {
+                    connected = false;
+                    statusDot.style.background = 'var(--coral)';
+                    statusDot.style.boxShadow = '0 0 8px var(--coral)';
+                    statusText.textContent = 'Disconnected';
+                }
+            }
+        }
+
+        setInterval(pollLatest, 800);
+        pollLatest();
+
+        /* ──────────────────────────────────────────────
+           LIVE CLOCK
+        ────────────────────────────────────────────── */
+        function updateClock() {
+            const now = new Date();
+            timestampEl.textContent = now.toLocaleTimeString('en-GB');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        /* ──────────────────────────────────────────────
+           ENVIRO LOGIC
+        ────────────────────────────────────────────── */
+        function updateEnvCard(cls) {
+            const data = impactData[cls];
+            if (!data) return;
+
+            // Trigger Animation
+            envCard.classList.remove('active');
+            envScanOverlay.classList.remove('scan-anim');
+
+            // Reflow for restart
+            void envCard.offsetWidth;
+
+            envCard.classList.add('active');
+            envScanOverlay.classList.add('scan-anim');
+
+            // Populate data
+            valTime.textContent = data.time;
+            valSave.textContent = data.save;
+            valCycle.textContent = data.cycle;
+
+            // Audio Feedback
+            if (audioEnabled) {
+                speak(`${cls} detected. ${data.save}.`);
+            }
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop previous
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.rate = 1.1;
+                msg.pitch = 1.0;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+    </script>
 </body>
+
 </html>

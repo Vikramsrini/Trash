@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+visionbin_env/
+.venv/
+venv/
+
+# VS Code settings
+.vscode/
+
+# Local/archive assets not required for runtime
+Archive.zip
+Archive/
+Picture1.png
+*.pptx
+
+# Notebook checkpoints
+.ipynb_checkpoints/
